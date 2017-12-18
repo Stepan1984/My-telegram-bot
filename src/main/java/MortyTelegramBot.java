@@ -13,12 +13,15 @@ import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
 import sun.awt.util.IdentityArrayList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MortyTelegramBot extends TelegramLongPollingBot {
 
     ArrayList<String> users = new ArrayList<>();
-
+    HashMap<String, String> cities = new HashMap<>();
+    boolean addMode = false;
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -29,28 +32,27 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
             if (update.getMessage().hasPhoto()){
                 List<PhotoSize> photos = update.getMessage().getPhoto();
                 sendPhoto(chatId, photos.get(0).getFileId());
-            } else if ( message.equals ("/hideKeyboard")){
-                hideKeyboard("Клавиатура скрыта", chatId, messageId);
-            }else if (message.equals("/showKeyboard") ) {
-                showKeyboard("Клавиатура активированна", chatId, messageId);
-            }else if (message.equals("/register")) {
-                User user = update.getMessage().getFrom();
-                users.add(user.getUserName());
-            }else if (message.equals("/unregister")) {
-             User user = update.getMessage().getFrom();
-             users.remove(user.getUserName());
-            }else if (message.equals("/getRandomUser")){
-            if (users.size() > 0) {
-                String randomUserName = users.get((int) (Math.random() * users.size()));
-                sendMessage("Поздравляю, @" + randomUserName + "Вы выиграли", chatId, messageId);
+            } else if (addMode) {
+                addCity(message, chatId);
+                addMode = false;
             }else{
-                sendMessage("Никто не хочет играть :(" , chatId, messageId);
-            }
-
-            } else if(message.equals("/getMeme")) {
-             sendPhoto(chatId, "https://thebaffler.com/wp-content/uploads/2017/08/Flat800x800075f.jpg" );
-            }else{
-            sendMessage(message, chatId, messageId);
+                switch (message) {
+                    case "/hideKeyboard":
+                        hideKeyboard("Клавиатура скрыта", chatId, messageId);
+                        break;
+                    case "/showKeyboard":
+                        showKeyboard("Клавиатура активированна", chatId, messageId);
+                        break;
+                    case "/addCity":
+                        addMode = true;
+                            sendMessage("Введите город:" , chatId);
+                            break;
+                    case "/getCities":
+                        getCities(chatId);
+                        break;
+                    default:
+                        sendMessage(message, chatId, messageId);
+                }
             }
 
 
@@ -58,15 +60,30 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
 
     }
 
+
+    //======================================================================================================
     @Override
     public String getBotUsername() {
-        return null;
+        return "AmazingMortyBot";
     }
 
     @Override
     public String getBotToken() {
         return "471190406:AAEHMS2ZvpINsqa80BsIQCdx52w0CwDm-ko";
     }
+
+    private void sendMessage(String text, long chatId) {
+        SendMessage sendMessage = new SendMessage()
+                .setText(text)
+                .setChatId(chatId);
+
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void sendMessage(String text, long chatId, int messageId){
         SendMessage sendMessage = new SendMessage()
                 .setText(text)
@@ -128,4 +145,36 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
         }
 
     }
+    //===================================================================================
+
+
+
+
+
+    private void addCity(String text, long chatId){
+        String[] кусочки = text.split(" ");
+        String put = cities.put(кусочки[0], кусочки[1]);
+        sendMessage(" Город добавлен", chatId);
+
+
+    }
+
+
+
+
+    private void getCities(long chatId){
+        String result = "Города: \n";
+        for (Map.Entry<String, String> строчка : cities.entrySet()){
+            result += строчка.getKey() + " - " + строчка.getValue();
+            result += "\n";
+        }
+        sendMessage(result, chatId);
+    }
+
+
+
+
 }
+
+
+
