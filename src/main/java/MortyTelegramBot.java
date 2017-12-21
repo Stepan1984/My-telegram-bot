@@ -1,17 +1,18 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.telegram.telegrambots.api.methods.send.SendMessage;
 import org.telegram.telegrambots.api.methods.send.SendPhoto;
-import org.telegram.telegrambots.api.objects.Message;
 import org.telegram.telegrambots.api.objects.PhotoSize;
 import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.User;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.exceptions.TelegramApiException;
-import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
-import sun.awt.util.IdentityArrayList;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +34,7 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
                 List<PhotoSize> photos = update.getMessage().getPhoto();
                 sendPhoto(chatId, photos.get(0).getFileId());
             } else if (addMode) {
-                addCity(message, chatId);
+                getBitCoin(message, chatId);
                 addMode = false;
             }else{
                 switch (message) {
@@ -43,9 +44,9 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
                     case "/showKeyboard":
                         showKeyboard("Клавиатура активированна", chatId, messageId);
                         break;
-                    case "/addCity":
+                    case "/getValuta":
                         addMode = true;
-                            sendMessage("Введите город:" , chatId);
+                            sendMessage("Введите какую валюту перевести " , chatId);
                             break;
                     case "/getCities":
                         getCities(chatId);
@@ -162,16 +163,40 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
 
 
 
-    private void getCities(long chatId){
+    private void getCities(long chatId) {
         String result = "Города: \n";
-        for (Map.Entry<String, String> строчка : cities.entrySet()){
+        for (Map.Entry<String, String> строчка : cities.entrySet()) {
             result += строчка.getKey() + " - " + строчка.getValue();
             result += "\n";
         }
         sendMessage(result, chatId);
+
     }
 
 
+    private void getBitCoin(String name, long chatId){
+
+        Document doc = null;
+        try {
+            doc = Jsoup.connect("https://ru.investing.com/currencies/" + name).get();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Elements importantLinks = doc.getElementsByAttributeValue("id", "last_last");
+
+        for (Element link : importantLinks) {
+            String linkText = link.html();
+            String bitok = linkText;
+            System.out.println(bitok);
+            sendMessage("Курс " + bitok, chatId);
+
+        }
+
+
+
+
+    }
 
 
 }
