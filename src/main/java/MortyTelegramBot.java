@@ -14,14 +14,10 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MortyTelegramBot extends TelegramLongPollingBot {
 
-    ArrayList<String> users = new ArrayList<>();
-    HashMap<String, String> cities = new HashMap<>();
     boolean addMode = false;
 
     @Override
@@ -46,11 +42,9 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
                         break;
                     case "/getValuta":
                         addMode = true;
-                            sendMessage("Введите какую валюту перевести " , chatId);
+                            sendMessage("Введите какую валюту перевести." +
+                                    "В данном формате:  ...-...   " + "Вместо точек подставить одно из этих наименований: usd(доллары), btc(биткоин), rub(рубли), eur(евро), gbp(фунты стерлингов) и т.д. " , chatId);
                             break;
-                    case "/getCities":
-                        getCities(chatId);
-                        break;
                     default:
                         sendMessage(message, chatId, messageId);
                 }
@@ -119,7 +113,7 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
         KeyboardRow row = new KeyboardRow();
         row.add("/showKeyboard");
         row.add("/hideKeyboard");
-        row.add("/getMeme");
+        row.add("/getValuta");
         keyboard.add(row);
         rkm.setKeyboard(keyboard);
 
@@ -152,26 +146,6 @@ public class MortyTelegramBot extends TelegramLongPollingBot {
 
 
 
-    private void addCity(String text, long chatId){
-        String[] кусочки = text.split(" ");
-        String put = cities.put(кусочки[0], кусочки[1]);
-        sendMessage(" Город добавлен", chatId);
-
-
-    }
-
-
-
-
-    private void getCities(long chatId) {
-        String result = "Города: \n";
-        for (Map.Entry<String, String> строчка : cities.entrySet()) {
-            result += строчка.getKey() + " - " + строчка.getValue();
-            result += "\n";
-        }
-        sendMessage(result, chatId);
-
-    }
 
 
     private void getBitCoin(String name, long chatId){
